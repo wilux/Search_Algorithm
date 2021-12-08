@@ -18,61 +18,56 @@ namespace Selenium_Frame
             return currentFrame;
         }
 
-        public static int CantidadFrames(IWebDriver driver)
-        {
-
-            IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
-            object frames = jsExecutor.ExecuteScript("return window.length");
-            int cantidad = Convert.ToInt32(frames);
-            if (cantidad == 0)
-            {
-                driver.SwitchTo().DefaultContent();
-                IWebElement iframe = driver.FindElement(By.Id("0"));
-                driver.SwitchTo().Frame(iframe);
-                frames = jsExecutor.ExecuteScript("return window.length");
-                cantidad = Convert.ToInt32(frames);
-
-            }
-
-            return cantidad;
-
-        }
 
         public static bool BuscarFrame(IWebDriver driver, By locator)
         {
+            bool estado = false;
 
-            int cantidad = CantidadFrames(driver);
-
-            for (int i = 0; i < cantidad + 1; i++)
+            if (FindElementIfExists(driver, locator) != null)
+            {
+                return true;
+            }
+            else
             {
 
-                try
+                driver.SwitchTo().DefaultContent();
+                string frameI = FrameActual(driver);
+                int sizeInicial = driver.FindElements(By.TagName("iframe")).Count();
+
+                for (int i = 0; i < sizeInicial; i++)
                 {
-                    driver.SwitchTo().DefaultContent();
-                    driver.SwitchTo().Frame(4);
-                    driver.SwitchTo().Frame("step" + i);
-                    if (FindElementIfExists(driver, locator) != null)
+
+                    driver.SwitchTo().Frame(i);
+                    int sizeNuevo = driver.FindElements(By.TagName("iframe")).Count();
+                    if (sizeNuevo != 0)
                     {
-                        return true;
-
+                        for (int j = 0; j < sizeNuevo; j++)
+                        {
+                            driver.SwitchTo().Frame(j);
+                            try
+                            {
+                                string frameJ = FrameActual(driver);
+                                driver.FindElement(locator);
+                                estado = true;
+                                break;
+                            }
+                            catch
+                            {
+                                driver.SwitchTo().ParentFrame();
+                                continue;
+                            }
+                        }
+                        if (estado == true) { break; } else { driver.SwitchTo().DefaultContent(); }
                     }
-
+                    else { driver.SwitchTo().DefaultContent(); }
                 }
-                catch { continue; }
             }
 
-
-            return false;
-
+            return estado;
         }
 
-        }
+    }
 
-        public static IWebElement FindElementIfExists(this IWebDriver driver, By by)
-        {
-            var elements = driver.FindElements(by);
-            return (elements.Count >= 1) ? elements.First() : null;
-        }
 
     }
 }
