@@ -1,2 +1,3 @@
-# Selenium_Frame
-Clase en C# para buscar el frame de un elemento con Selenium en sistemas Bantotal web para Internet Explorer.
+# Search Algorithm for app Bantotal Web with Internet Explorer
+
+Class in C# and Java
